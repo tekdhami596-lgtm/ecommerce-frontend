@@ -1,11 +1,44 @@
 import "./App.css";
+import axios from "axios";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./routes/AppRoutes";
+import { useDispatch } from "react-redux";
+import { useEffect, useState } from "react";
+import { login } from "./redux/slice/userSlice";
 
 function App() {
+  const [isLoading, setIsloading] = useState(true);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    axios
+      .get("http://localhost:8000/api/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        dispatch(login(res.data.data));
+        setIsloading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setIsloading(false);
+      });
+  }, []);
   return (
     <>
-     <RouterProvider router={router} />
+      {isLoading ? (
+        <div className="flex h-screen items-center justify-center">
+          <p className="text-3xl">Loading: .......</p>
+        </div>
+      ) : (
+        <>
+          <RouterProvider router={router} />
+        </>
+      )}
     </>
   );
 }

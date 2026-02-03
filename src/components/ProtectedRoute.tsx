@@ -1,12 +1,18 @@
 
-import { Outlet } from 'react-router-dom'
+import { RootState } from '../redux/store'
+import { useSelector } from 'react-redux'
+import { Outlet } from 'react-router'
+import { Navigate } from 'react-router'
 
 function ProtectedRoute() {
-  return (
-    <div>
-      <Outlet />
-    </div>
-  )
+  const user = useSelector((root:RootState)=>root.user.value.data)
+ 
+  if(user){
+    return <Outlet />
+  } else{
+    return <Navigate to="/login" />
+  }
+    
 }
 
 export default ProtectedRoute

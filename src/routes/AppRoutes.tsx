@@ -5,7 +5,8 @@ import Login from "../pages/Login";
 import ProtectedRoute from "../components/ProtectedRoute";
 import PageNotFound from "../pages/PageNotFound";
 import Signup from "../pages/Signup";
-import ProductDetails from "../pages/ProductDetails";
+import SellerDashboard from "../pages/seller/SellerDashboard";
+
 
 export const router = createBrowserRouter([
   {
@@ -16,9 +17,9 @@ export const router = createBrowserRouter([
       { path: "login", element: <Login /> },
       {path:"signup", element:<Signup/> },
       {
-        path: "/product",
+        path: "/seller",
         Component: ProtectedRoute,
-        children: [{ index: true, element: <ProductDetails /> }],
+        children: [{ path:"dashboard", Component: SellerDashboard }],
       },
 
      
