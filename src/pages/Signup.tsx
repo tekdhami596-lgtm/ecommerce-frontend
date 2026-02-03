@@ -135,7 +135,7 @@ function SignupForm() {
         {/* Button */}
         <button
           type="submit"
-          className="w-full rounded bg-pink-500 py-2 text-white transition hover:bg-pink-600"
+          className="w-full cursor-pointer rounded bg-pink-500 py-2 text-white transition hover:bg-pink-600"
         >
           Sign Up
         </button>
