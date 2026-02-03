@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signUpService } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import toast from "../helpers/notify";
 
 type UserRole = "buyer" | "seller" | "";
 
@@ -29,14 +30,20 @@ function SignupForm() {
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
+    } else if (formData.firstName.length < 3) {
+      newErrors.firstName = "First name must be at least 3 characters";
     }
 
     if (!formData.lastName.trim()) {
       newErrors.lastName = "Last name is required";
+    } else if (formData.lastName.length < 3) {
+      newErrors.lastName = "First name must be at least 3 characters";
     }
 
     if (!formData.email) {
       newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email address";
     }
 
     if (!formData.password) {
@@ -68,11 +75,19 @@ function SignupForm() {
     if (!validate()) return;
 
     try {
-      const response = await signUpService(formData);
-      localStorage.setItem("token", response.token);
-      navigate("/login");
+      const response = (await signUpService(formData)) as {
+        data: { message: string };
+      };
+      console.log(response.data);
+      if (response.data) {
+        toast.success("Register successfull");
+        navigate("/login");
+      } else {
+        toast.error(response.data);
+      }
     } catch (error) {
-      console.error(error);
+      toast.error("An unexpected error occurred. Please try again.");
+      console.error("Signup Error:", error);
     }
   };
 

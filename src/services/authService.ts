@@ -1,5 +1,6 @@
 import api from "../api/axios";
 
+
 export interface SignupFormData {
   firstName: string;
   lastName: string;
@@ -8,12 +9,20 @@ export interface SignupFormData {
   role: "buyer" | "seller" | "";
 }
 
+// Define a common error response structure based on your backend
+export interface ApiErrorResponse {
+  message: string;
+  errors?: Record<string, string[]>;
+}
+
 export const signUpService = async (data: SignupFormData) => {
-  try {
-    const response = await api.post("/auth/signup", data);
-    return response.data;
-  } catch (error) {
-    console.error("signup error", error);
+  const response = await api.post("/auth/signup", data);
+  console.log({response});
+  if (response.data.token) {
+    localStorage.setItem("token", response.data.token);
+    return { success: true, data: response.data };
+  } else {
+    return false;
   }
 };
 
@@ -22,11 +31,10 @@ export interface LoginCredentials {
   password: string;
 }
 
+
 export const loginService = async (credentials: LoginCredentials) => {
-  try {
-    const response = await api.post("/auth/login", credentials);
-    return response.data;
-  } catch (error) {
-    console.error(error);
-  }
+  const response = await api.post("/auth/login", credentials);
+  // Success logic: save token, redirect user
+  console.log("Success:", response.data);
+  return {data: response.data}
 };

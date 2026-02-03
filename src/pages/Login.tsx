@@ -4,6 +4,17 @@ import { loginService } from "../services/authService";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/slice/userSlice";
 
+// interface LoginResponse {
+//   success: boolean;
+//   data?: {
+//     id: string;
+//     email: string;
+//     role: "buyer" | "seller";
+//   };
+//   token?: string | undefined;
+//   message?: string | undefined;
+// }
+
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,16 +30,19 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const user = await loginService(formData);
-    
-      dispatch(login(user));
-      localStorage.setItem("token", user.token);
+      const response = await loginService(formData);
 
-      if (user.role === "seller") {
-        navigate("/");
+      console.log(response.data);
+      dispatch(login(response.data));
+
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
       }
-    } catch (error) {
-      console.error(error);
+      navigate("/");
+
+      // role based navigation
+    } catch (err) {
+      console.error(err);
     }
   };
 

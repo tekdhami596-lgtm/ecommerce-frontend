@@ -5,6 +5,7 @@ import { router } from "./routes/AppRoutes";
 import { useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { login } from "./redux/slice/userSlice";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +38,7 @@ function App() {
       ) : (
         <>
           <RouterProvider router={router} />
+          <ToastContainer />
         </>
       )}
     </>
