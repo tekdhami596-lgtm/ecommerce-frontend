@@ -14,6 +14,13 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
+    console.log("Token:", token);
+
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
     axios
       .get("http://localhost:8000/api/auth/me", {
         headers: {
@@ -25,7 +32,6 @@ function App() {
         setIsLoading(false);
       })
       .catch((err) => {
-        console.log(err);
         setIsLoading(false);
       });
   }, [dispatch]);
