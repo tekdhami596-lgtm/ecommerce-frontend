@@ -18,8 +18,8 @@ export default function Navbar() {
 
           {/* Menu */}
           <div className="hidden gap-6 font-medium md:flex">
-            <NavLink to="/" className="text-pink-500">
-              Home
+            <NavLink to="/products" className="text-pink-500">
+              Products
             </NavLink>
 
             <NavLink to="/seller/dashboard" className="hover:text-pink-500">
