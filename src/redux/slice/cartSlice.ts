@@ -6,6 +6,8 @@ interface CartItem {
   quantity: number;
   title: string;
   stock: number;
+  price: number;
+  image: string;
 }
 
 interface CartState {
