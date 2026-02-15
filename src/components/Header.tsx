@@ -69,10 +69,12 @@ export default function Header() {
               </button>
 
               <div className="relative cursor-pointer hover:text-pink-300">
+               <Link to={"/cart"}>
                 <IoCartOutline size={20} />
                 <span className="absolute -top-2 -right-2 rounded-full bg-pink-500 px-1 text-xs">
                   0
                 </span>
+               </Link>
               </div>
 
               <button onClick={() => dispatch(toggleTheme())}>
