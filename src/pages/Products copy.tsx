@@ -1,15 +1,18 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import NoImageFound from "../assets/NoImage.png";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { addToCart as addToCartRedux } from "../redux/slice/cartSlice";
-import { RootState } from "../redux/store";
 import cartApi from "../api/cart.api";
 import notify from "../helpers/notify";
-// ✅ FIX 1: removed raw axios + hardcoded URL, use configured api instance
-import api from "../api/axios";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
-type ProductImage = { path: string };
+type ProductImage = {
+  path: string;
+};
+
 type Product = {
   id: number;
   title: string;
@@ -26,8 +29,6 @@ function Products() {
   const location = useLocation();
 
   const user = useSelector((state: RootState) => state.user.data);
-  // ✅ FIX 2: sellers should not see Add to Cart
-  const isSeller = user?.role === "seller";
 
   useEffect(() => {
     fetchProducts();
@@ -35,8 +36,9 @@ function Products() {
 
   const fetchProducts = async () => {
     try {
-      // ✅ FIX 1: was axios.get("http://localhost:8001/api/products/...")
-      const res = await api.get("/products?limit=100");
+      const res = await axios.get(
+        "http://localhost:8001/api/products/?limit=100",
+      );
       setProducts(res.data.data);
     } catch (err) {
       console.error(err);
@@ -46,28 +48,29 @@ function Products() {
   const handleAddToCart = async (product: Product) => {
     if (!user) {
       notify.error("Please login first");
-      navigate("/login", { state: { from: location.pathname } });
-      return;
-    }
-    // ✅ FIX 2: block sellers as a safety net even if button is hidden
-    if (isSeller) {
-      notify.error("Sellers cannot add items to cart");
+
+      navigate("/login", {
+        state: { from: location.pathname },
+      });
       return;
     }
     try {
+      // Call your API to add the product
       const res = await cartApi.create({ productId: product.id });
       const cartData = res.data.data;
-      dispatch(
-        addToCartRedux({
-          id: cartData.id,
-          productId: product.id,
-          title: product.title,
-          price: product.price,
-          stock: product.stock,
-          quantity: cartData.quantity ?? 1,
-          image: product.images?.[0]?.path || "",
-        }),
-      );
+      const cartItem = {
+        id: cartData.id, // ✅ use cart id from backend (NOT product.id)
+        productId: product.id,
+        title: product.title,
+        price: product.price,
+        stock: product.stock,
+        quantity: cartData.quantity ?? 1,
+
+        image: product.images?.[0]?.path || "", // ✅ REQUIRED FIELD
+      };
+
+      // Update Redux cart state
+      dispatch(addToCartRedux(cartItem));
       notify.success("Item added to cart successfully");
     } catch (err) {
       console.error("Failed to add to cart", err);
@@ -85,8 +88,7 @@ function Products() {
           <div className="relative h-48 overflow-hidden rounded-t-xl bg-gray-200">
             {product.images?.length > 0 ? (
               <img
-                // ✅ FIX 3: was hardcoded http://localhost:8000 — use env variable
-                src={`${import.meta.env.VITE_API_URL}/${product.images[0].path}`}
+                src={`http://localhost:8000/${product.images[0].path}`}
                 alt={product.title}
                 className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
               />
@@ -108,34 +110,32 @@ function Products() {
             <p className="line-clamp-2 text-sm text-gray-500">
               {product.shortDescription}
             </p>
-
             <div className="flex items-center justify-between pt-2">
               <span className="text-lg font-bold text-indigo-600">
                 ${product.price}
               </span>
+
               <span
-                className={`text-sm font-medium ${product.stock > 0 ? "text-green-600" : "text-red-500"}`}
+                className={`text-sm font-medium ${
+                  product.stock > 0 ? "text-green-600" : "text-red-500"
+                }`}
               >
                 {product.stock > 0
                   ? `In Stock (${product.stock})`
                   : "Out of Stock"}
               </span>
             </div>
-
-            {/* ✅ FIX 2: hide Add to Cart button entirely for sellers */}
-            {!isSeller && (
-              <button
-                disabled={product.stock === 0}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToCart(product);
-                }}
-                className="mt-2 w-full cursor-pointer rounded bg-indigo-600 px-3 py-1 text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-              >
-                {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
-              </button>
-            )}
-
+            {/* Add to cart button */}
+            <button
+              disabled={product.stock === 0}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(product);
+              }}
+              className={`mt-2 w-full cursor-pointer rounded bg-indigo-600 px-3 py-1 text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400`}
+            >
+              {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+            </button>
             <button
               onClick={() => navigate(`/products/${product.id}`)}
               className="mt-1 w-full cursor-pointer rounded border border-indigo-600 px-3 py-1 text-indigo-600 hover:bg-indigo-50"

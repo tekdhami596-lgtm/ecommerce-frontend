@@ -4,7 +4,7 @@ export default {
   success: (msg: string) => {
     toast.success(msg, {
       position: "top-right",
-      autoClose: 2000,
+      autoClose: 1000,
       hideProgressBar: false,
       closeOnClick: false,
       pauseOnHover: true,
@@ -17,7 +17,7 @@ export default {
   error: (msg: string) => {
     toast.error(msg, {
       position: "top-right",
-      autoClose: 2000,
+      autoClose: 1000,
       hideProgressBar: false,
       closeOnClick: false,
       pauseOnHover: true,
