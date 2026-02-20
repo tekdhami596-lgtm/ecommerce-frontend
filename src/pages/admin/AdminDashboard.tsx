@@ -86,7 +86,7 @@ export default function AdminDashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
           <p className="mt-1 text-gray-500">
-            Welcome back! Here's what's happening on Hekto.
+            Welcome back! Here's what's happening on DokoMart.
           </p>
         </div>
 

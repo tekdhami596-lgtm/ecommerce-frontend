@@ -111,7 +111,7 @@ export default function HomePage() {
       {/* Hero */}
       <div className="bg-gradient-to-r from-indigo-900 to-purple-700 px-6 py-16 text-center text-white">
         <h1 className="mb-4 text-4xl font-bold md:text-5xl">
-          Welcome to Hekto
+          Welcome to DokoMart
         </h1>
         <p className="mx-auto max-w-xl text-lg text-indigo-200">
           Discover products you'll love — curated by sellers, organized by

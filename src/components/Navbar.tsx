@@ -144,7 +144,7 @@ export default function Navbar({ role }: NavbarProps) {
         {/* Logo + Badge */}
         <div className="flex shrink-0 items-center gap-3">
           <NavLink to="/" className="text-2xl font-bold text-indigo-900">
-            Hekto
+            DokoMart
           </NavLink>
           {role && (
             <span
