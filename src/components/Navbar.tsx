@@ -25,13 +25,11 @@ const navLinks: Record<NonNullable<Role>, { to: string; label: string }[]> = {
     { to: "/seller/dashboard", label: "Dashboard" },
     { to: "/seller/products/create", label: "Create Product" },
     { to: "/seller/products", label: "Seller Products" },
-    { to: "/seller/categories", label: "Manage Categories" },
   ],
   buyer: [
     { to: "/", label: "Home" },
-    { to: "/blog", label: "Blog" },
-    { to: "/shop", label: "Shop" },
-    { to: "/contact", label: "Contact" },
+    { to: "/products", label: "Shop" },
+    { to: "/my-orders", label: "My Orders" },
   ],
 };
 
@@ -139,7 +137,7 @@ export default function Navbar({ role }: NavbarProps) {
   };
 
   return (
-    <nav className="border-b bg-white">
+    <nav className="mb-5 border-b bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
         {/* Logo + Badge */}
         <div className="flex shrink-0 items-center gap-3">

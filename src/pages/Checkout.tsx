@@ -7,6 +7,7 @@ import orderApi, { OrderPayload } from "../api/order.api";
 import notify from "../helpers/notify";
 import NoImage from "../assets/NoImage.png";
 import { useNavigate } from "react-router-dom";
+import { Trash2 } from "lucide-react";
 
 interface CartItem {
   id: number;
@@ -67,8 +68,10 @@ export default function Checkout() {
     cartApi.update(id, quantity).then(fetchCartItems);
   };
 
-  const deleteCartItem = (id: number) =>
+  const deleteCartItem = (id: number) => {
     cartApi.delete(id).then(fetchCartItems);
+    notify.success("Item deleted successfully");
+  };
 
   // Place order
   const placeOrder = async () => {
@@ -175,7 +178,9 @@ export default function Checkout() {
                 onClick={() =>
                   updateCartItemCount(el.id, el.quantity - 1, el.product.stock)
                 }
-              ></button>
+              >
+                -
+              </button>
               <span>{el.quantity}</span>
               <button
                 onClick={() =>
@@ -184,7 +189,9 @@ export default function Checkout() {
               >
                 +
               </button>
-              <button onClick={() => deleteCartItem(el.id)}>🗑</button>
+              <button onClick={() => deleteCartItem(el.id)}>
+                <Trash2 />
+              </button>
             </div>
           </div>
         ))}
@@ -200,7 +207,7 @@ export default function Checkout() {
         />
         <input
           className="border p-3"
-          placeholder="Address"
+          placeholder="Delivery Address"
           value={userInfo.address}
           onChange={(e) =>
             setUserInfo({ ...userInfo, address: e.target.value })
@@ -232,7 +239,7 @@ export default function Checkout() {
             loading ||
             cartItems.some((item) => item.quantity > item.product.stock)
           }
-          className="rounded bg-green-600 p-3 text-white"
+          className="cursor-pointer rounded bg-green-600 p-3 text-white"
         >
           {loading ? "Processing..." : "Place Order"}
         </button>

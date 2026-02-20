@@ -205,7 +205,7 @@ export default function HomePage() {
                         <img
                           src={`http://localhost:8001/${product.images[0].path}`}
                           alt={product.title}
-                          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                          className="object-fit h-full w-full transition duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center text-sm text-gray-300">
@@ -258,7 +258,7 @@ export default function HomePage() {
                     <button
                       onClick={() => handleAddToCart(product)}
                       disabled={product.stock === 0}
-                      className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <IoCartOutline size={18} />
                       Add to Cart

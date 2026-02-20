@@ -6,7 +6,6 @@ function MainLayout() {
   return (
     <div>
       <Header />
-      <h1>Welcome to Hekto store</h1>
       <Outlet />
       <Footer />
     </div>

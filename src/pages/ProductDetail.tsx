@@ -112,7 +112,7 @@ const ProductDetailPage: React.FC = () => {
           <img
             src={imgUrl(mainImage)}
             alt={product.title}
-            className="h-[400px] w-full rounded border object-contain"
+            className="object-fit h-[400px] w-full rounded border"
           />
           <div className="mt-4 flex gap-2">
             {product.images.map((img, idx) => (
@@ -162,11 +162,14 @@ const ProductDetailPage: React.FC = () => {
                   e.stopPropagation();
                   handleAddToCart(product);
                 }}
-                className="flex-1 rounded bg-blue-600 py-3 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                className="flex-1 cursor-pointer rounded bg-blue-600 py-3 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
               >
                 {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
               </button>
-              <button className="flex-1 rounded bg-green-600 py-3 text-white transition hover:bg-green-700">
+              <button
+                onClick={() => navigate("/checkout")}
+                className="flex-1 cursor-pointer rounded bg-green-600 py-3 text-white transition hover:bg-green-700"
+              >
                 Buy Now
               </button>
             </div>

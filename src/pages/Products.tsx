@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import NoImageFound from "../assets/NoImage.png";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart as addToCartRedux } from "../redux/slice/cartSlice";
 import { RootState } from "../redux/store";
 import cartApi from "../api/cart.api";
 import notify from "../helpers/notify";
-// ✅ FIX 1: removed raw axios + hardcoded URL, use configured api instance
 import api from "../api/axios";
 
 type ProductImage = { path: string };
@@ -24,19 +23,26 @@ function Products() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const user = useSelector((state: RootState) => state.user.data);
-  // ✅ FIX 2: sellers should not see Add to Cart
   const isSeller = user?.role === "seller";
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [searchParams]);
 
   const fetchProducts = async () => {
     try {
-      // ✅ FIX 1: was axios.get("http://localhost:8001/api/products/...")
-      const res = await api.get("/products?limit=100");
+      const categoryId = searchParams.get("categoryId");
+      const search = searchParams.get("search");
+
+      const params = new URLSearchParams();
+      params.set("limit", "100");
+      if (categoryId) params.set("categoryId", categoryId);
+      if (search) params.set("q", search);
+
+      const res = await api.get(`/products?${params.toString()}`);
       setProducts(res.data.data);
     } catch (err) {
       console.error(err);
@@ -49,7 +55,6 @@ function Products() {
       navigate("/login", { state: { from: location.pathname } });
       return;
     }
-    // ✅ FIX 2: block sellers as a safety net even if button is hidden
     if (isSeller) {
       notify.error("Sellers cannot add items to cart");
       return;
@@ -85,10 +90,9 @@ function Products() {
           <div className="relative h-48 overflow-hidden rounded-t-xl bg-gray-200">
             {product.images?.length > 0 ? (
               <img
-                // ✅ FIX 3: was hardcoded http://localhost:8000 — use env variable
                 src={`${import.meta.env.VITE_API_URL}/${product.images[0].path}`}
                 alt={product.title}
-                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                className="object-fit h-full w-full transition duration-300 group-hover:scale-105"
               />
             ) : (
               <div className="flex h-full items-center justify-center">
@@ -122,7 +126,6 @@ function Products() {
               </span>
             </div>
 
-            {/* ✅ FIX 2: hide Add to Cart button entirely for sellers */}
             {!isSeller && (
               <button
                 disabled={product.stock === 0}

@@ -1,13 +1,56 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../redux/store";
 import { fetchCategoryFlat } from "../redux/slice/categorySlice";
 import { ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
-import { useState } from "react";
 
 interface Props {
   selectedIds: number[];
   onChange: (ids: number[]) => void;
+}
+
+// ─── Defined OUTSIDE the parent component so React doesn't recreate it
+//     on every render — critical for useRef / indeterminate to work correctly.
+function IndeterminateCheckbox({
+  checked,
+  indeterminate,
+  onChange,
+}: {
+  checked: boolean;
+  indeterminate: boolean;
+  onChange: () => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.indeterminate = indeterminate;
+    }
+  }, [indeterminate]);
+
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      onClick={(e) => e.stopPropagation()}
+      className="h-4 w-4 accent-pink-500"
+    />
+  );
+}
+
+// ─── Normalize parentId: treat 0 / undefined / "null" / null all as null ───
+function normalizeParent(val: any): number | null {
+  if (
+    val === null ||
+    val === undefined ||
+    val === 0 ||
+    val === "null" ||
+    val === "0"
+  )
+    return null;
+  return Number(val);
 }
 
 export default function CategoryCheckboxes({ selectedIds, onChange }: Props) {
@@ -16,33 +59,169 @@ export default function CategoryCheckboxes({ selectedIds, onChange }: Props) {
     (state: RootState) => state.categories,
   );
 
-  // Track which parent sections are collapsed
+  // All nodes start collapsed; clicking the chevron expands them
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+
+  // Once categories load, mark all parent nodes as collapsed by default
+  useEffect(() => {
+    if (categories.length > 0) {
+      const parentIds = categories
+        .filter((c) =>
+          categories.some((ch) => normalizeParent(ch.parentId) === c.id),
+        )
+        .map((c) => c.id);
+      setCollapsed((prev) => {
+        const next = { ...prev };
+        parentIds.forEach((id) => {
+          if (next[id] === undefined) next[id] = true; // true = collapsed
+        });
+        return next;
+      });
+    }
+  }, [categories]);
 
   useEffect(() => {
     if (categories.length === 0) {
       dispatch(fetchCategoryFlat());
     }
-  }, []);
+  }, [categories.length, dispatch]);
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+
+  /** Get direct children of parentId (null = root level) */
+  const getChildren = (parentId: number | null) =>
+    categories.filter((c) => normalizeParent(c.parentId) === parentId);
+
+  /** All descendant ids recursively */
+  const getAllDescendantIds = (id: number): number[] => {
+    const children = getChildren(id);
+    return children.flatMap((child) => [
+      child.id,
+      ...getAllDescendantIds(child.id),
+    ]);
+  };
+
+  /** All ancestor ids from node up to root */
+  const getAllAncestorIds = (id: number): number[] => {
+    const node = categories.find((c) => c.id === id);
+    if (!node) return [];
+    const parentId = normalizeParent(node.parentId);
+    if (parentId === null) return [];
+    return [parentId, ...getAllAncestorIds(parentId)];
+  };
+
+  // ─── Selection state ─────────────────────────────────────────────────────────
+
+  const isChecked = (id: number) => selectedIds.includes(id);
+
+  const isIndeterminate = (id: number): boolean => {
+    const descendants = getAllDescendantIds(id);
+    if (descendants.length === 0) return false;
+    const selectedCount = descendants.filter((d) =>
+      selectedIds.includes(d),
+    ).length;
+    return selectedCount > 0 && selectedCount < descendants.length;
+  };
+
+  // ─── Toggle ──────────────────────────────────────────────────────────────────
 
   const toggle = (id: number) => {
+    const descendants = getAllDescendantIds(id);
+    const ancestors = getAllAncestorIds(id);
+    let next: number[];
+
     if (selectedIds.includes(id)) {
-      onChange(selectedIds.filter((cid) => cid !== id));
+      // Deselect self + all descendants
+      const toRemove = new Set([id, ...descendants]);
+      const afterRemove = selectedIds.filter((cid) => !toRemove.has(cid));
+
+      // Deselect ancestors that now have zero selected descendants
+      const ancestorsToRemove = ancestors.filter((aid) =>
+        getAllDescendantIds(aid).every((d) => !afterRemove.includes(d)),
+      );
+
+      next = afterRemove.filter((cid) => !ancestorsToRemove.includes(cid));
     } else {
-      onChange([...selectedIds, id]);
+      // Select self + all descendants
+      const merged = Array.from(new Set([...selectedIds, id, ...descendants]));
+
+      // Select ancestors whose ALL descendants are now fully selected
+      const ancestorsToAdd = ancestors.filter((aid) =>
+        getAllDescendantIds(aid).every((d) => merged.includes(d)),
+      );
+
+      next = Array.from(new Set([...merged, ...ancestorsToAdd]));
     }
+
+    onChange(next);
   };
 
-  const toggleCollapse = (id: number) => {
+  const toggleCollapse = (id: number) =>
     setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  // ─── Recursive renderer ───────────────────────────────────────────────────────
+
+  const renderNode = (category: any, level = 0) => {
+    const children = getChildren(category.id);
+    const hasChildren = children.length > 0;
+    // undefined → not yet set → treat as expanded
+    const isCollapsedNow = collapsed[category.id] === true;
+    const checked = isChecked(category.id);
+    const indeterminate = !checked && isIndeterminate(category.id);
+
+    return (
+      <div key={category.id}>
+        <div
+          className="flex cursor-pointer items-center gap-2 py-2.5 hover:bg-pink-50"
+          style={{ paddingLeft: 16 + level * 18, paddingRight: 16 }}
+          onClick={() =>
+            hasChildren ? toggleCollapse(category.id) : toggle(category.id)
+          }
+        >
+          <IndeterminateCheckbox
+            checked={checked}
+            indeterminate={indeterminate}
+            onChange={() => toggle(category.id)}
+          />
+
+          {hasChildren && (
+            <FolderOpen size={14} className="shrink-0 text-indigo-400" />
+          )}
+
+          <span
+            className={`flex-1 text-sm ${
+              checked
+                ? "font-semibold text-pink-600"
+                : indeterminate
+                  ? "font-medium text-pink-400"
+                  : "text-gray-700"
+            }`}
+          >
+            {category.title}
+          </span>
+
+          {hasChildren && (
+            <span className="text-gray-400 hover:text-gray-600">
+              {isCollapsedNow ? (
+                <ChevronRight size={14} />
+              ) : (
+                <ChevronDown size={14} />
+              )}
+            </span>
+          )}
+        </div>
+
+        {hasChildren && !isCollapsedNow && (
+          <div>{children.map((child) => renderNode(child, level + 1))}</div>
+        )}
+      </div>
+    );
   };
 
-  const parents = categories.filter((c) => c.parentId === null);
-  const getChildren = (parentId: number) =>
-    categories.filter((c) => c.parentId === parentId);
+  const rootCategories = getChildren(null);
 
   if (loading) {
-    return <p className="text-sm text-gray-400">Loading categories...</p>;
+    return <p className="text-sm text-gray-400">Loading categories…</p>;
   }
 
   if (categories.length === 0) {
@@ -67,100 +246,12 @@ export default function CategoryCheckboxes({ selectedIds, onChange }: Props) {
         )}
       </div>
 
-      {/* Category Tree */}
+      {/* Tree */}
       <div className="max-h-64 divide-y divide-gray-50 overflow-y-auto">
-        {parents.map((parent) => {
-          const subs = getChildren(parent.id);
-          const isCollapsed = collapsed[parent.id];
-          const hasChildren = subs.length > 0;
-
-          return (
-            <div key={parent.id}>
-              {/* Parent Row */}
-              <div
-                className={`flex items-center gap-2 px-4 py-2.5 ${
-                  hasChildren
-                    ? "cursor-pointer bg-gray-50 hover:bg-gray-100"
-                    : "cursor-pointer hover:bg-pink-50"
-                }`}
-                onClick={() =>
-                  hasChildren ? toggleCollapse(parent.id) : toggle(parent.id)
-                }
-              >
-                {/* Checkbox — only shown if no children */}
-                {!hasChildren && (
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(parent.id)}
-                    onChange={() => toggle(parent.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="h-4 w-4 accent-pink-500"
-                  />
-                )}
-
-                {/* Folder icon for parents with children */}
-                {hasChildren && (
-                  <FolderOpen size={14} className="shrink-0 text-indigo-400" />
-                )}
-
-                <span
-                  className={`flex-1 text-sm font-semibold ${
-                    hasChildren
-                      ? "text-gray-600"
-                      : "text-gray-700 hover:text-pink-500"
-                  }`}
-                >
-                  {parent.title}
-                </span>
-
-                {/* Collapse toggle */}
-                {hasChildren && (
-                  <span className="text-gray-400">
-                    {isCollapsed ? (
-                      <ChevronRight size={14} />
-                    ) : (
-                      <ChevronDown size={14} />
-                    )}
-                  </span>
-                )}
-              </div>
-
-              {/* Children — shown unless collapsed */}
-              {hasChildren && !isCollapsed && (
-                <div className="bg-white">
-                  {subs.map((child) => (
-                    <label
-                      key={child.id}
-                      className="flex cursor-pointer items-center gap-3 py-2 pr-4 pl-10 hover:bg-pink-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(child.id)}
-                        onChange={() => toggle(child.id)}
-                        className="h-4 w-4 accent-pink-500"
-                      />
-                      <span
-                        className={`text-sm ${
-                          selectedIds.includes(child.id)
-                            ? "font-semibold text-pink-600"
-                            : "text-gray-600"
-                        }`}
-                      >
-                        {child.title}
-                      </span>
-                      {selectedIds.includes(child.id) && (
-                        <span className="ml-auto text-xs text-pink-400">✓</span>
-                      )}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {rootCategories.map((cat) => renderNode(cat))}
       </div>
 
-      {/* Footer — selected summary */}
+      {/* Footer */}
       {selectedIds.length > 0 && (
         <div className="border-t border-gray-100 bg-pink-50 px-4 py-2">
           <p className="text-xs text-pink-600">
