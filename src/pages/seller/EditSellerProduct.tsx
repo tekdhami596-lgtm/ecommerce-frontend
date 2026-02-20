@@ -29,7 +29,7 @@ function EditSellerProduct() {
     const fetchProduct = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/seller/products/${id}`,
+          `http://localhost:8001/api/seller/products/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -102,7 +102,7 @@ function EditSellerProduct() {
 
     try {
       await axios.patch(
-        `http://localhost:8000/api/seller/products/${id}`,
+        `http://localhost:8001/api/seller/products/${id}`,
         formData,
         {
           headers: {
@@ -190,7 +190,7 @@ function EditSellerProduct() {
             {existingImages.map((img) => (
               <div key={img.id} className="relative">
                 <img
-                  src={`http://localhost:8000/${img.path}`}
+                  src={`http://localhost:8001/${img.path}`}
                   className="h-28 w-28 rounded-lg object-cover shadow"
                 />
                 <button

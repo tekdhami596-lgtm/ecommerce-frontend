@@ -12,24 +12,23 @@ export default function Header() {
   const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const dispatch = useDispatch();
 
-  const role = user?.role; // "admin" | "seller" | "buyer" | undefined
+  const role = user?.role;
   const isBuyer = !role || role === "buyer";
 
   return (
     <>
-      <header className="w-full bg-purple-600 text-sm text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-end gap-4 px-4 py-2">
-          {/* User greeting */}
+      {/* ✅ FIXED: removed bottom border/margin that caused gap */}
+      <header className="sticky top-0 z-50 w-full bg-indigo-600 text-sm text-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-end gap-4 px-4 py-2.5">
           {user?.firstName && (
-            <span className="hidden text-base sm:inline">
+            <span className="hidden text-sm font-medium sm:inline">
               {user.firstName} {user.lastName}
             </span>
           )}
 
-          {/* Auth: Login / Logout */}
           {user ? (
             <button
-              className="flex cursor-pointer items-center gap-1 hover:text-pink-300"
+              className="flex cursor-pointer items-center gap-1.5 transition-colors hover:text-indigo-200"
               onClick={() => dispatch(logout())}
             >
               <LogOut size={16} />
@@ -38,19 +37,21 @@ export default function Header() {
           ) : (
             <Link
               to="/login"
-              className="flex items-center gap-1 hover:text-pink-300"
+              className="flex items-center gap-1.5 transition-colors hover:text-indigo-200"
             >
               <User size={16} />
               <span>Login</span>
             </Link>
           )}
 
-          {/* Cart — buyers only */}
           {isBuyer && (
-            <Link to="/cart" className="relative hover:text-pink-300">
+            <Link
+              to="/cart"
+              className="relative transition-colors hover:text-indigo-200"
+            >
               <IoCartOutline size={22} />
               {totalQuantity > 0 && (
-                <span className="absolute -top-2 -right-2 rounded-full bg-pink-500 px-1 text-xs">
+                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 text-xs font-bold">
                   {totalQuantity}
                 </span>
               )}

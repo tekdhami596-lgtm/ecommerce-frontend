@@ -158,7 +158,7 @@ export default function Checkout() {
               <img
                 src={
                   el.product.images?.[0]?.path
-                    ? `http://localhost:8000/${el.product.images[0].path}`
+                    ? `http://localhost:8001/${el.product.images[0].path}`
                     : NoImage
                 }
                 alt={el.product.title}

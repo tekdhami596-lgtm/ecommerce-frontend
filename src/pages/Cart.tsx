@@ -97,7 +97,7 @@ export default function Cart() {
                   <img
                     src={
                       item.image
-                        ? `http://localhost:8000/${item.image}`
+                        ? `http://localhost:8001/${item.image}`
                         : NoImage
                     }
                     alt={item.title}

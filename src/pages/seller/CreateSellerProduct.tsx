@@ -103,7 +103,7 @@ function CreateSellerProduct() {
         formData.append("images[]", file);
       });
 
-      await axios.post("http://localhost:8000/api/seller/products", formData, {
+      await axios.post("http://localhost:8001/api/seller/products", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

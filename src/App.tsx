@@ -21,7 +21,7 @@ function App() {
     }
 
     axios
-      .get("http://localhost:8000/api/auth/me", {
+      .get("http://localhost:8001/api/auth/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

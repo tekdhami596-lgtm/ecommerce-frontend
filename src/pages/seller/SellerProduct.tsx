@@ -40,7 +40,7 @@ function SellerProduct() {
       setLoading(true);
       const token = localStorage.getItem("token");
 
-      const res = await axios.get("http://localhost:8000/api/seller/products", {
+      const res = await axios.get("http://localhost:8001/api/seller/products", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -64,7 +64,7 @@ function SellerProduct() {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/api/seller/products/${id}`, {
+      await axios.delete(`http://localhost:8001/api/seller/products/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -135,7 +135,7 @@ function SellerProduct() {
                 <div className="relative h-48 overflow-hidden rounded-t-xl bg-gray-200">
                   {product.images?.length > 0 ? (
                     <img
-                      src={`http://localhost:8000/${product.images[0].path}`}
+                      src={`http://localhost:8001/${product.images[0].path}`}
                       alt={product.title}
                       className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     />
