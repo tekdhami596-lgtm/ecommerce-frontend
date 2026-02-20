@@ -39,7 +39,19 @@ const roleBadge: Record<NonNullable<Role>, string> = {
   buyer: "bg-green-100 text-green-600",
 };
 
-// Recursive subcategory renderer inside dropdown
+// ── Custom debounce hook ──────────────────────────────────────────────────────
+function useDebounce<T>(value: T, delay: number = 400): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// ── Recursive subcategory renderer inside dropdown ────────────────────────────
 function SubCategoryList({
   items,
   onSelect,
@@ -86,10 +98,12 @@ function SubCategoryList({
   );
 }
 
+// ── Navbar ────────────────────────────────────────────────────────────────────
 export default function Navbar({ role }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -107,6 +121,15 @@ export default function Navbar({ role }: NavbarProps) {
       dispatch(fetchCategoryTree());
     }
   }, []);
+
+  // Navigate when debounced search value changes
+  useEffect(() => {
+    if (debouncedSearch.trim()) {
+      navigate(
+        `/products?search=${encodeURIComponent(debouncedSearch.trim())}`,
+      );
+    }
+  }, [debouncedSearch]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -128,6 +151,7 @@ export default function Navbar({ role }: NavbarProps) {
     setIsOpen(false);
   };
 
+  // Instant search on explicit submit (Enter key or button click)
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) {
@@ -169,7 +193,7 @@ export default function Navbar({ role }: NavbarProps) {
             </NavLink>
           ))}
 
-          {/* Categories Dropdown — visible to all roles */}
+          {/* Categories Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setCategoryOpen(!categoryOpen)}
